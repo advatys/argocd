@@ -28,7 +28,7 @@ spec:
         nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
         nginx.ingress.kubernetes.io/auth-tls-secret: "{{ .Release.Namespace }}/{{ .Release.Name }}-tls"
         acme.cert-manager.io/http01-ingress-class: {{ .Values.ingress.class }}
-        cert-manager.io/cluster-issuer: default-tls-issuer
+        cert-manager.io/cluster-issuer: smallstep-acme-http
       tls:
       - hosts:
           - {{ .Values.ingress.hostname }}
