@@ -1,0 +1,218 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ArgoCD
+metadata:
+  name: {{ .Release.Name }}
+
+spec:
+  disableAdmin: true
+  dex:
+    openShiftOAuth: true
+
+  rbac:
+    defaultPolicy: 'role:readonly'
+    policy: |
+      g, system:cluster-admins, role:admin
+    scopes: '[groups]'
+  applicationInstanceLabelKey: argocd.argoproj.io/instance
+
+  ha:
+    enabled: false
+  server:
+    host: {{ .Values.ingress.hostname }}
+    ingress:
+      enabled: {{  .Values.ingress.enabled }}
+      ingressClassName: {{ .Values.ingressClassName }}
+      annotations:
+        {{- toYaml .Values.ingress.annotations | nindent 8 }}
+
+      tls:
+      - hosts:
+          - {{ .Values.ingress.hostname }}
+        secretName: {{ .Values.ingress.hostname }}-tls
+
+  resourceExclusions: |
+    - apiGroups:
+        - kyverno.io
+      kinds:
+        - AdmissionReport
+        - BackgroundScanReport
+        - ClusterAdmissionReport
+        - ClusterBackgroundScanReport
+      clusters:
+         - '*'
+  resourceHealthChecks:
+    - group: vault.advatys.com
+      kind: AWSSecretBackendRole
+      check: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.conditions ~= nil then
+            for i, condition in ipairs(obj.status.conditions) do
+              if condition.type == "Successful" and condition.status == "False" then
+                hs.status = "Degraded"
+                hs.message = condition.message
+                return hs
+              end
+              if condition.type == "Successful" and condition.status == "True" then
+                hs.status = "Healthy"
+                hs.message = condition.message
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Vault configuration"
+        return hs
+    - group: vault.advatys.com
+      kind: AzureSecretBackendRole
+      check: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.conditions ~= nil then
+            for i, condition in ipairs(obj.status.conditions) do
+              if condition.type == "Successful" and condition.status == "False" then
+                hs.status = "Degraded"
+                hs.message = condition.message
+                return hs
+              end
+              if condition.type == "Successful" and condition.status == "True" then
+                hs.status = "Healthy"
+                hs.message = condition.message
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Vault configuration"
+        return hs
+    - group: redhatcop.redhat.io
+      kind: JWTOIDCAuthEngineRole
+      check: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.conditions ~= nil then
+            for i, condition in ipairs(obj.status.conditions) do
+              if condition.type == "ReconcileSuccessful" and condition.status == "False" then
+                hs.status = "Degraded"
+                hs.message = condition.message
+                return hs
+              end
+              if condition.type == "ReconcileSuccessful" and condition.status == "True" then
+                hs.status = "Healthy"
+                hs.message = condition.message
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Vault configuration"
+        return hs
+    - group: redhatcop.redhat.io
+      kind: KubernetesAuthEngineRole
+      check: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.conditions ~= nil then
+            for i, condition in ipairs(obj.status.conditions) do
+              if condition.type == "ReconcileSuccessful" and condition.status == "False" then
+                hs.status = "Degraded"
+                hs.message = condition.message
+                return hs
+              end
+              if condition.type == "ReconcileSuccessful" and condition.status == "True" then
+                hs.status = "Healthy"
+                hs.message = condition.message
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Vault configuration"
+        return hs
+    - group: redhatcop.redhat.io
+      kind: Policy
+      check: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.conditions ~= nil then
+            for i, condition in ipairs(obj.status.conditions) do
+              if condition.type == "ReconcileSuccessful" and condition.status == "False" then
+                hs.status = "Degraded"
+                hs.message = condition.message
+                return hs
+              end
+              if condition.type == "ReconcileSuccessful" and condition.status == "True" then
+                hs.status = "Healthy"
+                hs.message = condition.message
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Vault configuration"
+        return hs
+
+  sidecarContainers:
+  {{- if .Values.plugins.tanka }}
+  - command:
+    - /bin/sh
+    - -c
+    - wget -O /tmp/yq https://github.com/mikefarah/yq/releases/download/v4.34.1/yq_linux_amd64 && chmod +x /tmp/yq && /var/run/argocd/argocd-cmp-server
+    env:
+    - name: HOME
+      value: /tmp
+    image: grafana/tanka:latest
+    name: tanka-cmp
+    securityContext:
+      runAsNonRoot: true
+    volumeMounts:
+    - mountPath: /var/run/argocd
+      name: var-files
+    - mountPath: /home/argocd/cmp-server/plugins
+      name: plugins
+    - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+      name: tanka-cmp
+      subPath: plugin.yaml
+    - mountPath: /tmp
+      name: tmp
+  {{- end }}
+  {{- if  .Values.plugins.kapitan }}
+  - command:
+
+    - /bin/sh
+    - -c
+    - /var/run/argocd/argocd-cmp-server
+    env:
+    - name: HOME
+      value: /tmp
+    image: docker.io/kapicorp/kapitan:v0.32.0
+    name: kapitan-cmp
+    securityContext:
+      runAsNonRoot: true
+    volumeMounts:
+    - mountPath: /var/run/argocd
+      name: var-files
+    - mountPath: /home/argocd/cmp-server/plugins
+      name: plugins
+    - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+      name: kapitan-cmp
+      subPath: plugin.yaml
+    - mountPath: /tmp
+      name: tmp
+  {{- end }}
+  volumes:
+  {{- if  .Values.plugins.kapitan }}
+  - configMap:
+      name: {{ .Release.Name}}-kapitan-cmp
+    name: kapitan-cmp
+  {{- end }}
+  {{- if  .Values.plugins.tanka }}
+  - configMap:
+      name: {{ .Release.Name}}-tanka-cmp 
+    name: tanka-cmp
+  {{- end }}

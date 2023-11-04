@@ -1,0 +1,32 @@
+{{- if  .Values.plugins.kapitan }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name}}-kapitan-cmp 
+data:
+  plugin.yaml: |-
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: kapitan
+    spec:
+      version: v1.0
+      init:
+        command:
+        - sh
+        - -c
+        - |
+          git config --global credential.helper store
+          echo "https://gitlab-ci-token:$ARGOCD_ENV_GITLAB_TOKEN@github.com" > ~/.git-credentials
+          kapitan compile --fetch
+          env > /tmp/.env
+      generate:
+        command: [sh, -c]
+        args:
+        - |
+          find ./compiled/ -type f -name '*.y*ml' -exec printf "\n\n---\n\n" \; -exec cat {} \; | sed 's/\.\.\.//g' |sed "s/^metadata:/metadata:\n\ \ namespace: $ARGOCD_ENV_NAMESPACE/g" | tee /tmp/all.yaml
+      discover:
+        fileName: "./inventory/targets/kapitan.yaml"
+      allowConcurrency: true
+      lockRepo: false
+{{- end }}

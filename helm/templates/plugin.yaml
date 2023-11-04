@@ -1,0 +1,10 @@
+{{- range .Values.cmp }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .name }} 
+data:
+  plugin.yaml: |-
+{{- toYaml .data| nindent 4 }}
+---
+{{- end }}

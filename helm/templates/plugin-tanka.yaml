@@ -1,0 +1,27 @@
+{{- if  .Values.plugins.tanka }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name}}-tanka-cmp 
+data:
+  plugin.yaml: |-
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: tanka
+    spec:
+      version: v1.0
+      init:
+        command: [jb, install, github.com/grafana/jsonnet-libs/tanka-util]
+      generate:
+        command: [sh, -c]
+        args:
+        - |
+          printf '%s\n' "$ARGOCD_ENV_VALUES" |/tmp/yq . -o json > /tmp/values.libsonnet  &&
+          /usr/local/bin/tk tool charts vendor &&
+          /usr/local/bin/tk show --dangerous-allow-redirect $ARGOCD_ENV_TANKA_PATH
+      discover:
+        fileName: "./jsonnetfile.json"
+      allowConcurrency: true
+      lockRepo: false
+{{- end }}
