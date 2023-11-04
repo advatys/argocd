@@ -1,10 +1,7 @@
 ingress:
-  enabled: true
-  ingressClassName: kubernetes-nginx-private
+  class: kubernetes-nginx-private
   hostname: argocd.apps.sip-1.internal.blakane.com
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+
 plugins:
   tanka: false
   kapitan: true

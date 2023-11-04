@@ -9,7 +9,6 @@ spec:
     openShiftOAuth: true
 
   rbac:
-    defaultPolicy: 'role:readonly'
     policy: |
       g, system:cluster-admins, role:admin
     scopes: '[groups]'
@@ -20,15 +19,20 @@ spec:
   server:
     host: {{ .Values.ingress.hostname }}
     ingress:
-      enabled: {{  .Values.ingress.enabled }}
-      ingressClassName: {{ .Values.ingressClassName }}
+      enabled: true
+      ingressClassName: {{ .Values.ingress.class }}
       annotations:
-        {{- toYaml .Values.ingress.annotations | nindent 8 }}
-
+        nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+        nginx.ingress.kubernetes.io/auth-tls-secret: "{{ .Release.Namespace }}/{{ .Release.Name }}-tls"
+        acme.cert-manager.io/http01-ingress-class: {{ .Values.ingress.class }}
+        cert-manager.io/cluster-issuer: default-tls-issuer
       tls:
       - hosts:
           - {{ .Values.ingress.hostname }}
-        secretName: {{ .Values.ingress.hostname }}-tls
+        secretName: {{ .Release.Name }}-frontend-tls
 
   resourceExclusions: |
     - apiGroups:
