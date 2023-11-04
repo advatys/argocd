@@ -160,63 +160,63 @@ spec:
         hs.status = "Progressing"
         hs.message = "Waiting for Vault configuration"
         return hs
-
-  sidecarContainers:
-  {{- if .Values.plugins.tanka }}
-  - command:
-    - /bin/sh
-    - -c
-    - wget -O /tmp/yq https://github.com/mikefarah/yq/releases/download/v4.34.1/yq_linux_amd64 && chmod +x /tmp/yq && /var/run/argocd/argocd-cmp-server
-    env:
-    - name: HOME
-      value: /tmp
-    image: grafana/tanka:latest
-    name: tanka-cmp
-    securityContext:
-      runAsNonRoot: true
-    volumeMounts:
-    - mountPath: /var/run/argocd
-      name: var-files
-    - mountPath: /home/argocd/cmp-server/plugins
-      name: plugins
-    - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+  repo:
+    sidecarContainers:
+    {{- if .Values.plugins.tanka }}
+    - command:
+      - /bin/sh
+      - -c
+      - wget -O /tmp/yq https://github.com/mikefarah/yq/releases/download/v4.34.1/yq_linux_amd64 && chmod +x /tmp/yq && /var/run/argocd/argocd-cmp-server
+      env:
+      - name: HOME
+        value: /tmp
+      image: grafana/tanka:latest
       name: tanka-cmp
-      subPath: plugin.yaml
-    - mountPath: /tmp
-      name: tmp
-  {{- end }}
-  {{- if  .Values.plugins.kapitan }}
-  - command:
+      securityContext:
+        runAsNonRoot: true
+      volumeMounts:
+      - mountPath: /var/run/argocd
+        name: var-files
+      - mountPath: /home/argocd/cmp-server/plugins
+        name: plugins
+      - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+        name: tanka-cmp
+        subPath: plugin.yaml
+      - mountPath: /tmp
+        name: tmp
+    {{- end }}
+    {{- if  .Values.plugins.kapitan }}
+    - command:
 
-    - /bin/sh
-    - -c
-    - /var/run/argocd/argocd-cmp-server
-    env:
-    - name: HOME
-      value: /tmp
-    image: docker.io/kapicorp/kapitan:v0.32.0
-    name: kapitan-cmp
-    securityContext:
-      runAsNonRoot: true
-    volumeMounts:
-    - mountPath: /var/run/argocd
-      name: var-files
-    - mountPath: /home/argocd/cmp-server/plugins
-      name: plugins
-    - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+      - /bin/sh
+      - -c
+      - /var/run/argocd/argocd-cmp-server
+      env:
+      - name: HOME
+        value: /tmp
+      image: docker.io/kapicorp/kapitan:v0.32.0
       name: kapitan-cmp
-      subPath: plugin.yaml
-    - mountPath: /tmp
-      name: tmp
-  {{- end }}
-  volumes:
-  {{- if  .Values.plugins.kapitan }}
-  - configMap:
-      name: {{ .Release.Name}}-kapitan-cmp
-    name: kapitan-cmp
-  {{- end }}
-  {{- if  .Values.plugins.tanka }}
-  - configMap:
-      name: {{ .Release.Name}}-tanka-cmp 
-    name: tanka-cmp
-  {{- end }}
+      securityContext:
+        runAsNonRoot: true
+      volumeMounts:
+      - mountPath: /var/run/argocd
+        name: var-files
+      - mountPath: /home/argocd/cmp-server/plugins
+        name: plugins
+      - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+        name: kapitan-cmp
+        subPath: plugin.yaml
+      - mountPath: /tmp
+        name: tmp
+    {{- end }}
+    volumes:
+    {{- if  .Values.plugins.kapitan }}
+    - configMap:
+        name: {{ .Release.Name}}-kapitan-cmp
+      name: kapitan-cmp
+    {{- end }}
+    {{- if  .Values.plugins.tanka }}
+    - configMap:
+        name: {{ .Release.Name}}-tanka-cmp 
+      name: tanka-cmp
+    {{- end }}
