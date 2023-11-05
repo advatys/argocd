@@ -10,7 +10,6 @@ data:
     metadata:
       name: kapitan
     spec:
-      version: v0.1
       init:
         # Init always happens immediately before generate, but its output is not treated as manifests.
         # This is a good place to, for example, download chart dependencies.
@@ -31,6 +30,8 @@ data:
         - |
             find ./compiled/ -type f -name '*.y*ml' -exec printf "\n\n---\n\n" \; -exec cat {} \; | sed 's/\.\.\.//g' |sed "s/^metadata:/metadata:\n\ \ namespace: $ARGOCD_ENV_NAMESPACE/g"
 
+      discovery:
+        fileName: ".kapitan"
       allowConcurrency: true
       lockRepo: false
 {{- end }}
