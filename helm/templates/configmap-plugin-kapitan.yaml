@@ -23,14 +23,14 @@ data:
                 echo "${content}" > "inventory/targets/${file_name}.yaml"
             done
 
-            kapitan compile --fetch --cache --yaml-multiline-string-style literal $PARAM_EXTRA_ARGS
+            kapitan compile --fetch --cache --yaml-dump-null-as-empty --yaml-multiline-string-style literal $PARAM_EXTRA_ARGS
       generate:
         command: [sh, -c]
         args:
         - |
             find ./compiled/ -type f -name '*.y*ml' -exec printf "\n\n---\n\n" \; -exec cat {} \; | sed 's/\.\.\.//g' |sed "s/^metadata:/metadata:\n\ \ namespace: $ARGOCD_ENV_NAMESPACE/g"
 
-      discovery:
+      discover:
         fileName: ".kapitan"
       allowConcurrency: true
       lockRepo: false

@@ -209,25 +209,7 @@ spec:
               f.write(resp.read())" 
 
 
-          ## Install jq
-          python -c "
-
-          import http.client
-
-          # Create a connection to the host
-          conn = http.client.HTTPSConnection('github.com')
-
-          # Make a GET request to the specified path
-          conn.request('GET', '/jqlang/jq/releases/download/jq-1.7/jq-linux-amd64')
-
-          # Get the response
-          resp = conn.getresponse()
-
-          # Write the response content to a file
-          with open('/tmp/jq', 'wb') as f:
-              f.write(resp.read())" 
-
-          chmod +x /tmp/yq && chmod +x /tmp/jq && /var/run/argocd/argocd-cmp-server
+          chmod +x /tmp/yq && /var/run/argocd/argocd-cmp-server
       env:
       - name: HOME
         value: /tmp

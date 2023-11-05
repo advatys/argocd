@@ -7,5 +7,5 @@ plugins:
   kapitan: 
     enabled: true
     image:
-      repository: docker.io/kapitan
-      tag: 0.29.2
+      repository: docker.io/kapicorp/kapitan
+      tag: v0.32.0
