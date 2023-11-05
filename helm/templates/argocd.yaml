@@ -187,10 +187,9 @@ spec:
     {{- end }}
     {{- if  .Values.plugins.kapitan }}
     - command:
-
       - /bin/sh
       - -c
-      - /var/run/argocd/argocd-cmp-server
+      - wget -O /tmp/yq https://github.com/mikefarah/yq/releases/download/v4.34.1/yq_linux_amd64 && chmod +x /tmp/yq && /var/run/argocd/argocd-cmp-server
       env:
       - name: HOME
         value: /tmp

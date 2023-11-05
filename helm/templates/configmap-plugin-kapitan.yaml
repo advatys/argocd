@@ -1,0 +1,36 @@
+{{- if  .Values.plugins.kapitan }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name}}-kapitan-cmp 
+data:
+  plugin.yaml: |-
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: kapitan
+    spec:
+      version: v0.1
+      init:
+        # Init always happens immediately before generate, but its output is not treated as manifests.
+        # This is a good place to, for example, download chart dependencies.
+        command: [sh, -c]
+        args:
+        - |
+            echo $ARGOCD_APP_PARAMETERS | yq e -o=json - | yq e '.[] | select(.name=="extra-targets") | .map[]' - | while read -r i; do
+
+                file_name=$(echo "$i" | yq e -o=json - | yq e '.name' -)
+                content=$(echo "$i" | yq e -o=json - | yq e -P '.content' -)
+                echo "${content}" > "inventory/targets/${file_name}.yaml"
+            done
+
+            kapitan compile --fetch --cache --yaml-multiline-string-style $PARAM_EXTRA_ARGS
+      generate:
+        command: [sh, -c]
+        args:
+        - |
+            find ./compiled/ -type f -name '*.y*ml' -exec printf "\n\n---\n\n" \; -exec cat {} \; | sed 's/\.\.\.//g' |sed "s/^metadata:/metadata:\n\ \ namespace: $ARGOCD_ENV_NAMESPACE/g"
+
+      allowConcurrency: true
+      lockRepo: false
+{{- end }}
