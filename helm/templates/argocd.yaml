@@ -189,7 +189,25 @@ spec:
     - command:
       - /bin/sh
       - -c
-      - wget -O /tmp/yq https://github.com/mikefarah/yq/releases/download/v4.34.1/yq_linux_amd64 && chmod +x /tmp/yq && /var/run/argocd/argocd-cmp-server
+      - |
+          python -c "
+
+          import http.client
+
+          # Create a connection to the host
+          conn = http.client.HTTPSConnection('github.com')
+
+          # Make a GET request to the specified path
+          conn.request('GET', '/mikefarah/yq/releases/download/v4.35.2/yq_linux_amd64')
+
+          # Get the response
+          resp = conn.getresponse()
+
+          # Write the response content to a file
+          with open('/tmp/yq', 'wb') as f:
+              f.write(resp.read())" 
+
+          chmod +x /tmp/yq && /var/run/argocd/argocd-cmp-server
       env:
       - name: HOME
         value: /tmp
