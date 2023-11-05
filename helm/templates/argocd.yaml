@@ -185,7 +185,7 @@ spec:
       - mountPath: /tmp
         name: tmp
     {{- end }}
-    {{- if  .Values.plugins.kapitan }}
+    {{- if  .Values.plugins.kapitan.enabled }}
     - command:
       - /bin/sh
       - -c

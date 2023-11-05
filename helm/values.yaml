@@ -4,4 +4,8 @@ ingress:
 
 plugins:
   tanka: false
-  kapitan: true
+  kapitan: 
+    enabled: true
+    image:
+      repository: docker.io/kapitan
+      tag: 0.29.2
