@@ -16,7 +16,7 @@ data:
         command: [sh, -c]
         args:
         - |
-            echo $ARGOCD_APP_PARAMETERS | yq e -o=json - | yq e '.[] | select(.name=="extra-targets") | .map[]' - | while read -r i; do
+            echo $PARAM_EXTRA_TARGETS | yq e -o=json - | yq e '.[]' - | while read -r i; do
 
                 file_name=$(echo "$i" | yq e -o=json - | yq e '.name' -)
                 content=$(echo "$i" | yq e -o=json - | yq e -P '.content' -)
