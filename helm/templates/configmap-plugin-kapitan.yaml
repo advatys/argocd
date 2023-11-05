@@ -24,7 +24,7 @@ data:
                 echo "${content}" > "inventory/targets/${file_name}.yaml"
             done
 
-            kapitan compile --fetch --cache --yaml-multiline-string-style $PARAM_EXTRA_ARGS
+            kapitan compile --fetch --cache --yaml-multiline-string-style literal $PARAM_EXTRA_ARGS
       generate:
         command: [sh, -c]
         args:
