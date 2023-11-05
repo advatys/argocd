@@ -30,8 +30,6 @@ data:
         - |
             find ./compiled/ -type f -name '*.y*ml' -exec printf "\n\n---\n\n" \; -exec cat {} \; | sed 's/\.\.\.//g' |sed "s/^metadata:/metadata:\n\ \ namespace: $ARGOCD_ENV_NAMESPACE/g"
 
-      discover:
-        fileName: ".kapitan"
       allowConcurrency: true
       lockRepo: false
 {{- end }}
