@@ -16,12 +16,14 @@ data:
         command: [sh, -c]
         args:
         - |
-            echo $PARAM_EXTRA_TARGETS | /tmp/yq e -o=json - | /tmp/yq e '.[]' - | while read -r i; do
+            if [ -n "$PARAM_EXTRA_TARGETS" ]; then
+                echo $PARAM_EXTRA_TARGETS | /tmp/yq e -o=json - | /tmp/yq e '.[]' - | while read -r i; do
 
-                file_name=$(echo "$i" | /tmp/yq e -o=json - | /tmp/yq e '.name' -)
-                content=$(echo "$i" | /tmp/yq e -o=json - | /tmp/yq e -P '.content' -)
-                echo "${content}" > "inventory/targets/${file_name}.yaml"
-            done
+                    file_name=$(echo "$i" | /tmp/yq e -o=json - | /tmp/yq e '.name' -)
+                    content=$(echo "$i" | /tmp/yq e -o=json - | /tmp/yq e -P '.content' -)
+                    echo "${content}" > "inventory/targets/${file_name}.yaml"
+                done
+            fi
 
             kapitan compile --fetch --cache --yaml-dump-null-as-empty --yaml-multiline-string-style literal $PARAM_EXTRA_ARGS
       generate:
